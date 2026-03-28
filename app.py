@@ -257,8 +257,21 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def send_file(self, path: Path) -> None:
         body = path.read_bytes()
+        content_type = "text/plain; charset=utf-8"
+        if path.suffix == ".html":
+            content_type = "text/html; charset=utf-8"
+        elif path.suffix == ".css":
+            content_type = "text/css; charset=utf-8"
+        elif path.suffix == ".js":
+            content_type = "application/javascript; charset=utf-8"
+        elif path.suffix == ".png":
+            content_type = "image/png"
+        elif path.suffix in (".jpg", ".jpeg"):
+            content_type = "image/jpeg"
+        elif path.suffix == ".svg":
+            content_type = "image/svg+xml"
         self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Type", content_type)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -275,6 +288,9 @@ class AppHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path in ("/", "/index.html"):
             self.send_file(BASE_DIR / "index.html")
+            return
+        if parsed.path == "/Front-VS-Behind-meter.png":
+            self.send_file(BASE_DIR.parent / "Front-VS-Behind-meter.png")
             return
         if parsed.path == "/api/ping":
             self.send_json({"ok": True})
