@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elcut Energy Portal</title>
+    <style>
+        :root{--bg:#07131f;--panel:rgba(7,23,35,.78);--line:rgba(170,214,255,.18);--line2:rgba(170,214,255,.36);--text:#e8f4ff;--muted:#90a7bb;--accent:#4ec2ff;--accent2:#7effc7;--warm:#ffd36c;--good:#67f0a4;--bad:#ff8d7d;--shadow:0 28px 90px rgba(0,0,0,.34)}
+        *{box-sizing:border-box} html{scroll-behavior:smooth}
+        body{margin:0;min-height:100vh;color:var(--text);font-family:"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,rgba(3,12,19,.76),rgba(3,12,19,.92)),radial-gradient(circle at top,rgba(78,194,255,.12),transparent 30%),linear-gradient(135deg,#07131f,#0a1724 45%,#06131f);overflow-x:hidden}
+        body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(148,193,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,193,255,.05) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;mask-image:linear-gradient(to bottom,rgba(0,0,0,.55),transparent 85%)}
+        .shell{width:min(1260px,calc(100% - 28px));margin:20px auto 40px;display:grid;gap:18px}
+        .topbar,.panel,.hero-card,.status-card,.lab-panel{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+        .topbar{position:sticky;top:14px;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 18px;border-radius:18px}
+        .brand{display:flex;align-items:center;gap:14px}.brand-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;color:#032033;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+        .brand strong{display:block;font-size:1rem;letter-spacing:.08em;text-transform:uppercase}.brand span{color:var(--muted);font-size:.92rem}
+        .nav,.row,.task-buttons{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+        .nav button,button{border:1px solid rgba(170,214,255,.12);border-radius:14px;padding:12px 16px;color:var(--text);background:linear-gradient(180deg,rgba(30,56,76,.94),rgba(14,32,46,.94));cursor:pointer;transition:.18s transform,.18s border-color,.18s background}
+        .nav button:hover,button:hover{transform:translateY(-1px);border-color:rgba(170,214,255,.34);background:linear-gradient(180deg,rgba(40,83,112,.98),rgba(18,45,64,.98))}
+        .nav button.active,.task-buttons button.active{color:#05131f;background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+        button.secondary{background:linear-gradient(180deg,rgba(35,43,52,.96),rgba(18,23,29,.96))}
+        .hero{position:relative;min-height:520px;border-radius:30px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:linear-gradient(180deg,rgba(6,16,25,.22),rgba(6,16,25,.88)),url("/Front-VS-Behind-meter.png") center/cover no-repeat}
+        .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,211,108,.18),transparent 32%),linear-gradient(180deg,transparent 28%,rgba(2,10,16,.78) 84%),radial-gradient(circle at 80% 15%,rgba(78,194,255,.22),transparent 26%)}
+        .hero-inner{position:relative;z-index:1;min-height:520px;padding:34px;display:grid;grid-template-columns:1.2fr .85fr;gap:24px;align-items:end}
+        .eyebrow{display:inline-flex;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(5,18,29,.54);border:1px solid rgba(255,255,255,.12);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase}
+        h1,h2,h3,p{margin:0} h1{margin-top:16px;font-size:clamp(2.5rem,6vw,5.2rem);line-height:.96;max-width:8.5ch;text-shadow:0 8px 40px rgba(0,0,0,.38)}
+        .lead{margin-top:18px;max-width:50ch;font-size:1.05rem;color:#d8e6f4}
+        .hero-metrics,.profile-grid,.status-grid,.timeline{display:grid;gap:12px}.hero-metrics{margin-top:22px;grid-template-columns:repeat(3,minmax(0,1fr))}
+        .metric,.mini-card,.guide-box,.result-box,.upload-box,.field-card,.timeline-item{border:1px solid var(--line);border-radius:18px;background:rgba(5,15,23,.54)}
+        .metric,.mini-card{padding:16px}.metric strong,.mini-card strong{display:block;font-size:1.35rem;margin-top:6px}
+        .hero-card,.panel,.lab-panel{border-radius:24px;padding:22px}.hero-card h2{margin-bottom:12px}
+        .field-label{display:block;margin-bottom:8px;color:#dbe8f5;font-weight:700}
+        input,select{width:100%;border:1px solid rgba(170,214,255,.16);border-radius:14px;padding:13px 14px;font:inherit;color:var(--text);background:rgba(5,15,23,.74);outline:none;transition:.16s border-color,.16s box-shadow}
+        input:focus,select:focus{border-color:rgba(78,194,255,.72);box-shadow:0 0 0 4px rgba(78,194,255,.12)}
+        .status-line{min-height:24px;margin-top:12px;font-weight:700}.status-line.good{color:var(--good)}.status-line.bad{color:var(--bad)}
+        .hidden{display:none!important}.page{display:none;animation:page-enter .38s ease}.page.active{display:block}
+        @keyframes page-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+        .panel-header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.panel-header p,.muted,.footer-note{color:var(--muted)}
+        .overview-grid,.lab-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.profile-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+        .status-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.status-card{padding:16px}.status-card h3{margin-bottom:10px;font-size:1.06rem}
+        .tag{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:700;margin-right:8px;margin-bottom:8px;background:rgba(145,168,188,.13)}
+        .tag.good{color:var(--good);background:rgba(103,240,164,.12)} .tag.bad{color:var(--bad);background:rgba(255,141,125,.12)}
+        .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}.field-card{padding:12px;transition:.16s transform,.16s border-color,.16s background}
+        .field-card:hover{transform:translateY(-1px);border-color:var(--line2);background:rgba(7,22,34,.65)} .field-card label{display:block;font-weight:700;margin-bottom:8px;color:#d9eef9}
+        .result-box,.upload-box,.guide-box{padding:16px}.result-list{margin:12px 0 0;padding-left:18px}.result-list li{margin-bottom:7px;color:#d4e7f7}
+        .timeline-item{padding:14px 14px 14px 18px;border-left:2px solid rgba(78,194,255,.34);border-radius:0 16px 16px 0}.timeline-item strong{display:block;margin-bottom:4px}
+        @media (max-width:980px){.hero-inner,.overview-grid,.lab-layout{grid-template-columns:1fr}.hero-metrics,.profile-grid{grid-template-columns:1fr}}
+        @media (max-width:640px){.shell{width:min(100% - 16px,1260px);margin-top:10px}.topbar{top:8px;padding:12px}.hero-card,.panel,.lab-panel{padding:18px}.hero-inner{padding:18px}}
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark">E</div>
+                <div><strong>Elcut Energy Portal</strong><span>Лабораторный контроль по электроэнергетике</span></div>
+            </div>
+            <nav id="pageNav" class="nav">
+                <button class="active" data-page="overview">Обзор</button>
+                <button data-page="check">Проверка</button>
+                <button data-page="upload">Материалы</button>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div class="hero-inner">
+                <div>
+                    <div class="eyebrow">Солнечная генерация · Ветер · Сети</div>
+                    <h1>Энергетический портал проверки работ</h1>
+                    <p class="lead">Веб-версия учебного комплекса для проверки задач, контроля вариантов и загрузки проектных материалов. Интерфейс построен в логике современной электроэнергетики: генерация, надежность, прозрачность расчета.</p>
+                    <div class="hero-metrics">
+                        <div class="metric"><span class="muted">Контрольные задачи</span><strong>5</strong></div>
+                        <div class="metric"><span class="muted">Типы файлов</span><strong>3</strong></div>
+                        <div class="metric"><span class="muted">Единый профиль</span><strong>1</strong></div>
+                    </div>
+                </div>
+                <aside class="hero-card">
+                    <h2>Вход в систему</h2>
+                    <label class="field-label" for="fioInput">Фамилия и имя</label>
+                    <input id="fioInput" type="text" placeholder="Например: Иванов Иван">
+                    <div class="row" style="margin-top:12px">
+                        <button id="loginButton">Подключиться</button>
+                        <button id="logoutButton" class="secondary">Очистить профиль</button>
+                    </div>
+                    <div id="loginStatus" class="status-line"></div>
+                    <p class="footer-note" style="margin-top:12px">После входа откроются обзор статуса, расчетная лаборатория и модуль загрузки материалов.</p>
+                </aside>
+            </div>
+        </section>
+
+        <section id="page-overview" class="page active">
+            <div id="profilePanel" class="panel hidden">
+                <div class="panel-header">
+                    <div><h2 id="profileName">Профиль студента</h2><p>Активный профиль и назначенные варианты по дисциплине.</p></div>
+                    <button id="refreshStatusButton" class="secondary">Обновить данные</button>
+                </div>
+                <div class="profile-grid">
+                    <div class="mini-card"><span class="muted">Вариант для задачи 1</span><strong id="variant1Value">-</strong></div>
+                    <div class="mini-card"><span class="muted">Вариант для задач 2-3</span><strong id="variant23Value">-</strong></div>
+                    <div class="mini-card"><span class="muted">Текущий режим</span><strong>Веб-проверка</strong></div>
+                </div>
+            </div>
+            <div id="statusPanel" class="panel hidden" style="margin-top:18px">
+                <div class="panel-header">
+                    <div><h2>Панель состояния</h2><p>Ход выполнения лабораторных работ и история допуска по задачам.</p></div>
+                </div>
+                <div class="overview-grid">
+                    <div id="statusGrid" class="status-grid"></div>
+                    <div class="guide-box">
+                        <h3 style="margin-bottom:12px">Как работать с порталом</h3>
+                        <div class="timeline">
+                            <div class="timeline-item"><strong>1. Авторизация</strong><span class="muted">Введи фамилию и имя, чтобы подтянуть вариант и личный статус.</span></div>
+                            <div class="timeline-item"><strong>2. Проверка расчетов</strong><span class="muted">Переключись на вкладку "Проверка", выбери задачу и введи значения.</span></div>
+                            <div class="timeline-item"><strong>3. Передача материалов</strong><span class="muted">На вкладке "Материалы" загрузи комплект `.pbm`, `.mod`, `.des`.</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-check" class="page">
+            <div class="lab-layout">
+                <div id="workspacePanel" class="lab-panel hidden">
+                    <div class="panel-header"><div><h2>Расчетная лаборатория</h2><p id="taskHint">Выберите задачу, затем введите значения и отправьте на проверку.</p></div></div>
+                    <div id="taskButtons" class="task-buttons"></div>
+                    <div id="fieldsContainer" class="field-grid"></div>
+                    <div class="row" style="margin-top:16px">
+                        <button id="checkButton">Запустить проверку</button>
+                        <button id="clearButton" class="secondary">Очистить поля</button>
+                    </div>
+                    <div id="checkStatus" class="status-line"></div>
+                    <div id="resultBox" class="result-box hidden" style="margin-top:14px">
+                        <h3>Карта погрешностей</h3>
+                        <ul id="resultList" class="result-list"></ul>
+                    </div>
+                </div>
+                <aside class="lab-panel">
+                    <h2>Режим анализа</h2>
+                    <div class="guide-box" style="margin-top:12px"><h3 style="margin-bottom:10px">Что показывает система</h3><p class="muted">Для каждого введенного параметра портал считает относительную погрешность и сравнивает ее с допуском. После проверки статус на обзорной панели обновляется автоматически.</p></div>
+                    <div class="guide-box" style="margin-top:14px"><h3 style="margin-bottom:10px">Подсказка по вводу</h3><p class="muted">Используй десятичную точку или запятую. Порядок полей соответствует варианту, который назначен тебе в базе данных.</p></div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="page-upload" class="page">
+            <div class="lab-layout">
+                <div class="lab-panel">
+                    <div class="panel-header"><div><h2>Передача материалов</h2><p>Загрузка проектных файлов по выбранной задаче.</p></div></div>
+                    <div class="upload-box">
+                        <label class="field-label" for="uploadTaskSelect">Задача</label>
+                        <select id="uploadTaskSelect">
+                            <option value="1.1">1.1</option><option value="1.2">1.2</option><option value="1.3">1.3</option><option value="2">2</option><option value="3">3</option>
+                        </select>
+                        <p class="muted" style="margin:14px 0 10px">Загрузи ровно три файла с одинаковым базовым именем: <code>.pbm</code>, <code>.mod</code>, <code>.des</code>.</p>
+                        <input id="uploadInput" type="file" multiple>
+                        <div class="row" style="margin-top:14px"><button id="uploadButton">Передать комплект</button></div>
+                        <div id="uploadStatus" class="status-line"></div>
+                    </div>
+                </div>
+                <aside class="lab-panel">
+                    <h2>Требования к комплекту</h2>
+                    <div class="timeline" style="margin-top:12px">
+                        <div class="timeline-item"><strong>Имена файлов</strong><span class="muted">Например: `alpha.pbm`, `alpha.mod`, `alpha.des`.</span></div>
+                        <div class="timeline-item"><strong>Комплектность</strong><span class="muted">Система принимает только полный набор из трех файлов.</span></div>
+                        <div class="timeline-item"><strong>Распределение</strong><span class="muted">Для задач 2 и 3 материалы автоматически учитываются по общему варианту.</span></div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE=["127.0.0.1","localhost"].includes(window.location.hostname)?"":"http://127.0.0.1:8000";
+        const state={fio:localStorage.getItem("elcut-fio")||"",profile:null,tasks:{},activeSubtask:"1.1"};
+        const fioInput=document.getElementById("fioInput"),loginButton=document.getElementById("loginButton"),logoutButton=document.getElementById("logoutButton"),loginStatus=document.getElementById("loginStatus"),profilePanel=document.getElementById("profilePanel"),statusPanel=document.getElementById("statusPanel"),workspacePanel=document.getElementById("workspacePanel"),profileName=document.getElementById("profileName"),variant1Value=document.getElementById("variant1Value"),variant23Value=document.getElementById("variant23Value"),refreshStatusButton=document.getElementById("refreshStatusButton"),statusGrid=document.getElementById("statusGrid"),taskButtons=document.getElementById("taskButtons"),fieldsContainer=document.getElementById("fieldsContainer"),taskHint=document.getElementById("taskHint"),checkButton=document.getElementById("checkButton"),clearButton=document.getElementById("clearButton"),checkStatus=document.getElementById("checkStatus"),resultBox=document.getElementById("resultBox"),resultList=document.getElementById("resultList"),uploadTaskSelect=document.getElementById("uploadTaskSelect"),uploadInput=document.getElementById("uploadInput"),uploadButton=document.getElementById("uploadButton"),uploadStatus=document.getElementById("uploadStatus"),navButtons=document.querySelectorAll("#pageNav button"),pages=document.querySelectorAll(".page");
+        fioInput.value=state.fio;
+        function setStatus(node,text,kind=""){node.textContent=text;node.className="status-line"+(kind?" "+kind:"")}
+        function switchPage(pageName){pages.forEach(page=>page.classList.toggle("active",page.id===`page-${pageName}`));navButtons.forEach(button=>button.classList.toggle("active",button.dataset.page===pageName))}
+        async function api(path,payload,isFormData=false){const options={method:"POST",headers:{},body:null}; if(isFormData){options.body=payload}else{options.headers["Content-Type"]="application/json";options.body=JSON.stringify(payload)} let response; try{response=await fetch(`${API_BASE}${path}`,options)}catch(error){throw new Error("Не удалось подключиться к локальному серверу. Запусти python app.py.")} const raw=await response.text(); let data; try{data=raw?JSON.parse(raw):{}}catch(error){throw new Error("Сервер вернул не JSON. Открой страницу через python app.py или оставь сервер запущенным.")} if(!response.ok||!data.ok){throw new Error(data.error||"Ошибка запроса.")} return data}
+        function showApp(){profilePanel.classList.remove("hidden");statusPanel.classList.remove("hidden");workspacePanel.classList.remove("hidden")}
+        function hideApp(){profilePanel.classList.add("hidden");statusPanel.classList.add("hidden");workspacePanel.classList.add("hidden")}
+        function renderProfile(){if(!state.profile){hideApp();return} showApp(); profileName.textContent=state.profile.fio; variant1Value.textContent=state.profile.variant1||"-"; variant23Value.textContent=state.profile.variant23||"-"}
+        function renderStatus(cards){statusGrid.innerHTML=""; cards.forEach(card=>{const accepted=card.accepted_at?`<span class="tag good">Принято</span>`:card.last_attempt_at?`<span class="tag bad">Есть расхождения</span>`:`<span class="tag">Еще не проверялось</span>`; const filesTag=card.upload_count>0?`<span class="tag good">Файлы: ${card.upload_count}</span>`:`<span class="tag bad">Файлы не загружены</span>`; const node=document.createElement("article"); node.className="status-card"; node.innerHTML=`<h3>Задача ${card.subtask}</h3><p class="muted">Вариант: ${card.variant||"-"}</p><div style="margin:12px 0 8px">${accepted}${filesTag}</div><p>Попыток: <strong>${card.attempt_count}</strong></p><p>Принято: <strong>${card.accepted_at||"нет"}</strong></p><p>Последняя попытка: <strong>${card.last_attempt_at||"нет"}</strong></p>`; statusGrid.appendChild(node)})}
+        function renderTaskButtons(){taskButtons.innerHTML=""; Object.keys(state.tasks).forEach(subtask=>{const button=document.createElement("button"); button.textContent=`Задача ${subtask}`; if(subtask===state.activeSubtask){button.classList.add("active")} button.addEventListener("click",()=>{state.activeSubtask=subtask; renderTaskButtons(); renderFields()}); taskButtons.appendChild(button)})}
+        function renderFields(){const task=state.tasks[state.activeSubtask]; fieldsContainer.innerHTML=""; resultBox.classList.add("hidden"); resultList.innerHTML=""; setStatus(checkStatus,"",""); if(!task){return} const fieldNames=task.fields||[]; taskHint.textContent=`Задача ${task.subtask}. Вариант ${task.variant||"-"}. Введи ${fieldNames.length} расчетных значений.`; fieldNames.forEach((fieldName,index)=>{const wrapper=document.createElement("div"); wrapper.className="field-card"; wrapper.innerHTML=`<label for="field-${index}">${fieldName}</label><input id="field-${index}" data-index="${index}" type="text" inputmode="decimal" placeholder="Введите число">`; fieldsContainer.appendChild(wrapper)})}
+        function collectValues(){return Array.from(fieldsContainer.querySelectorAll("input")).map(input=>input.value.trim())}
+        async function login(){const fio=fioInput.value.trim(); if(!fio){setStatus(loginStatus,"Введите ФИО.","bad");return} setStatus(loginStatus,"Подключение к профилю...",""); try{const data=await api("/api/login",{fio}); state.fio=data.profile.fio; state.profile=data.profile; state.tasks=data.tasks; state.activeSubtask="1.1"; localStorage.setItem("elcut-fio",state.fio); fioInput.value=state.fio; renderProfile(); renderStatus(data.status); renderTaskButtons(); renderFields(); setStatus(loginStatus,"Профиль активирован.","good"); switchPage("overview")}catch(error){hideApp(); setStatus(loginStatus,error.message,"bad")}}
+        async function refreshStatus(){if(!state.fio){return} try{const data=await api("/api/status",{fio:state.fio}); renderStatus(data.status); setStatus(loginStatus,"Статус обновлен.","good")}catch(error){setStatus(loginStatus,error.message,"bad")}}
+        async function checkTask(){if(!state.fio){setStatus(checkStatus,"Сначала войдите по ФИО.","bad");return} const values=collectValues(); if(values.some(value=>!value)){setStatus(checkStatus,"Заполните все поля.","bad");return} setStatus(checkStatus,"Идет расчет погрешностей...",""); try{const data=await api("/api/check",{fio:state.fio,subtask:state.activeSubtask,values}); renderStatus(data.status); setStatus(checkStatus,data.accepted?"Работа засчитана.":"Обнаружены расхождения.",data.accepted?"good":"bad"); const labels=state.tasks[state.activeSubtask].fields; resultList.innerHTML=""; data.errors_pct.forEach((errorValue,index)=>{const item=document.createElement("li"); item.textContent=`${labels[index]}: ${errorValue}%`; resultList.appendChild(item)}); resultBox.classList.remove("hidden")}catch(error){setStatus(checkStatus,error.message,"bad")}}
+        async function uploadFiles(){if(!state.fio){setStatus(uploadStatus,"Сначала войдите по ФИО.","bad");return} const files=Array.from(uploadInput.files||[]); if(files.length!==3){setStatus(uploadStatus,"Выберите ровно 3 файла.","bad");return} const formData=new FormData(); formData.append("fio",state.fio); formData.append("subtask",uploadTaskSelect.value); files.forEach(file=>formData.append("files",file,file.name)); setStatus(uploadStatus,"Передача комплекта на сервер...",""); try{const data=await api("/api/upload",formData,true); renderStatus(data.status); setStatus(uploadStatus,`Файлы сохранены: ${data.saved_files.join(", ")}`,"good"); uploadInput.value=""}catch(error){setStatus(uploadStatus,error.message,"bad")}}
+        function logout(){state.fio=""; state.profile=null; state.tasks={}; localStorage.removeItem("elcut-fio"); fioInput.value=""; hideApp(); statusGrid.innerHTML=""; fieldsContainer.innerHTML=""; taskButtons.innerHTML=""; resultList.innerHTML=""; resultBox.classList.add("hidden"); setStatus(loginStatus,"Профиль очищен.",""); setStatus(checkStatus,"",""); setStatus(uploadStatus,"",""); switchPage("overview")}
+        navButtons.forEach(button=>button.addEventListener("click",()=>switchPage(button.dataset.page)));
+        loginButton.addEventListener("click",login); logoutButton.addEventListener("click",logout); refreshStatusButton.addEventListener("click",refreshStatus); checkButton.addEventListener("click",checkTask); clearButton.addEventListener("click",()=>{fieldsContainer.querySelectorAll("input").forEach(input=>input.value=""); setStatus(checkStatus,"Поля очищены.","")}); uploadButton.addEventListener("click",uploadFiles); fioInput.addEventListener("keydown",event=>{if(event.key==="Enter"){login()}});
+        if(state.fio){login()}
+    </script>
+</body>
+</html>
