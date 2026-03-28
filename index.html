@@ -346,6 +346,10 @@
     </main>
 
     <script>
+        const API_BASE = ["127.0.0.1", "localhost"].includes(window.location.hostname)
+            ? ""
+            : "http://127.0.0.1:8000";
+
         const state = {
             fio: localStorage.getItem("elcut-fio") || "",
             profile: null,
@@ -399,8 +403,21 @@
                 options.body = JSON.stringify(payload);
             }
 
-            const response = await fetch(path, options);
-            const data = await response.json();
+            let response;
+            try {
+                response = await fetch(`${API_BASE}${path}`, options);
+            } catch (error) {
+                throw new Error("Не удалось подключиться к локальному серверу. Запусти python app.py.");
+            }
+
+            const raw = await response.text();
+            let data;
+            try {
+                data = raw ? JSON.parse(raw) : {};
+            } catch (error) {
+                throw new Error("Сервер вернул не JSON. Открой страницу через python app.py или оставь сервер запущенным.");
+            }
+
             if (!response.ok || !data.ok) {
                 throw new Error(data.error || "Ошибка запроса.");
             }
