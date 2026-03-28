@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPStatus
@@ -25,7 +26,6 @@ import db  # type: ignore
 import logic  # type: ignore
 
 
-DB_PATH = str(BOT_DIR / "database.db")
 MATERIALS_DIR = str(BOT_DIR / "Материалы")
 
 SUBTASKS = ["1.1", "1.2", "1.3", "2", "3"]
@@ -49,6 +49,37 @@ TASK23_LABELS = {
         "L51", "L52", "L53", "L54", "L55", "L61", "L62", "L63", "L64", "L65", "L66",
     ],
 }
+
+REQUIRED_TABLES = {"Студенты", "Поля", "Решение 1", "Решение 2", "Решение 3"}
+
+
+def has_required_tables(path: Path) -> bool:
+    if not path.exists():
+        return False
+    try:
+        conn = sqlite3.connect(path)
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        names = {row[0] for row in cur.fetchall()}
+        conn.close()
+        return REQUIRED_TABLES.issubset(names)
+    except Exception:
+        return False
+
+
+def resolve_db_path() -> str:
+    candidates = [
+        BOT_DIR / "database.db",
+        BOT_DIR / "database.db.db",
+        BOT_DIR / "database_before_update.db",
+    ]
+    for candidate in candidates:
+        if has_required_tables(candidate):
+            return str(candidate)
+    return str(BOT_DIR / "database.db")
+
+
+DB_PATH = resolve_db_path()
 
 
 def sanitize_path_part(name: str) -> str:
@@ -414,6 +445,7 @@ def run() -> None:
     os.chdir(BASE_DIR)
     db.init_db(DB_PATH)
     server = ThreadingHTTPServer(("127.0.0.1", 8000), AppHandler)
+    print(f"Using database: {DB_PATH}")
     print("Open http://127.0.0.1:8000")
     server.serve_forever()
 
