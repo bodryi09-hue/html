@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elcut Check Web</title>
+    <style>
+        :root {
+            --paper: #f2eadf;
+            --paper-deep: #e2cfb7;
+            --card: rgba(255, 250, 243, 0.92);
+            --text: #1f2937;
+            --muted: #6b7280;
+            --line: #dbc6aa;
+            --accent: #b55d21;
+            --accent-dark: #874112;
+            --good: #1f7a47;
+            --bad: #a83b32;
+            --shadow: 0 24px 70px rgba(84, 52, 26, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(181, 93, 33, 0.14), transparent 32%),
+                linear-gradient(135deg, var(--paper), var(--paper-deep));
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 28px auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+
+        .hero {
+            padding: 28px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 22px;
+        }
+
+        h1, h2, h3 {
+            margin: 0 0 12px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 0.98;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.55;
+        }
+
+        .lead {
+            font-size: 1.02rem;
+            max-width: 52ch;
+        }
+
+        .login-box,
+        .profile-box {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 13px 14px;
+            font: inherit;
+            color: inherit;
+            background: rgba(255, 255, 255, 0.88);
+        }
+
+        button {
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font: inherit;
+            color: #fff;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.14s ease, background 0.14s ease;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+
+        button.secondary {
+            background: #85725e;
+        }
+
+        button.secondary:hover {
+            background: #66523e;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-line {
+            min-height: 24px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .status-line.good {
+            color: var(--good);
+        }
+
+        .status-line.bad {
+            color: var(--bad);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            padding: 0 22px 22px;
+        }
+
+        .status-card {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.62);
+        }
+
+        .status-card h3 {
+            font-size: 1.08rem;
+        }
+
+        .tag {
+            display: inline-flex;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            background: rgba(133, 114, 94, 0.12);
+        }
+
+        .tag.good {
+            color: var(--good);
+            background: rgba(31, 122, 71, 0.12);
+        }
+
+        .tag.bad {
+            color: var(--bad);
+            background: rgba(168, 59, 50, 0.12);
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 18px;
+        }
+
+        .section {
+            padding: 22px;
+        }
+
+        .task-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0 18px;
+        }
+
+        .task-buttons button.active {
+            background: #5f3420;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .field-card {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.58);
+        }
+
+        .field-card label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .result-box,
+        .upload-box {
+            border: 1px dashed var(--line);
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .result-list {
+            margin: 12px 0 0;
+            padding-left: 18px;
+        }
+
+        .result-list li {
+            margin-bottom: 6px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .hero,
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="panel hero">
+            <div>
+                <h1>Elcut Check<br>в браузере</h1>
+                <p class="lead">
+                    Эта версия повторяет основную логику бота без Telegram: вход по ФИО,
+                    проверка задач 1.1, 1.2, 1.3, 2, 3, просмотр статуса и загрузка файлов.
+                </p>
+            </div>
+            <div class="login-box">
+                <label class="field-label" for="fioInput">Фамилия и имя</label>
+                <input id="fioInput" type="text" placeholder="Например: Иванов Иван">
+                <div class="row" style="margin-top: 12px;">
+                    <button id="loginButton">Войти</button>
+                    <button id="logoutButton" class="secondary">Выйти</button>
+                </div>
+                <div id="loginStatus" class="status-line"></div>
+            </div>
+        </section>
+
+        <section id="profilePanel" class="panel section hidden">
+            <div class="profile-box">
+                <div class="row" style="justify-content: space-between;">
+                    <div>
+                        <h2 id="profileName">Студент</h2>
+                        <p class="muted">Вариант 1: <span id="variant1Value">-</span> · Вариант 2-3: <span id="variant23Value">-</span></p>
+                    </div>
+                    <button id="refreshStatusButton" class="secondary">Обновить статус</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="statusPanel" class="panel hidden">
+            <div class="section">
+                <h2>Статус работ</h2>
+                <p class="muted">По каждой задаче видно количество попыток, принятие и загрузки файлов.</p>
+            </div>
+            <div id="statusGrid" class="status-grid"></div>
+        </section>
+
+        <section id="workspacePanel" class="workspace hidden">
+            <div class="panel section">
+                <h2>Проверка значений</h2>
+                <p id="taskHint" class="muted">Выберите задачу, затем введите значения и отправьте на проверку.</p>
+
+                <div id="taskButtons" class="task-buttons"></div>
+                <div id="fieldsContainer" class="field-grid"></div>
+
+                <div class="row" style="margin-top: 16px;">
+                    <button id="checkButton">Проверить</button>
+                    <button id="clearButton" class="secondary">Очистить поля</button>
+                </div>
+
+                <div id="checkStatus" class="status-line"></div>
+                <div id="resultBox" class="result-box hidden" style="margin-top: 14px;">
+                    <h3>Погрешности, %</h3>
+                    <ul id="resultList" class="result-list"></ul>
+                </div>
+            </div>
+
+            <div class="panel section">
+                <h2>Загрузка файлов</h2>
+                <div class="upload-box">
+                    <label class="field-label" for="uploadTaskSelect">Задача</label>
+                    <select id="uploadTaskSelect">
+                        <option value="1.1">1.1</option>
+                        <option value="1.2">1.2</option>
+                        <option value="1.3">1.3</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+
+                    <p class="muted" style="margin: 14px 0 10px;">
+                        Загрузи ровно три файла с одинаковым именем: <code>.pbm</code>, <code>.mod</code>, <code>.des</code>.
+                    </p>
+
+                    <input id="uploadInput" type="file" multiple>
+
+                    <div class="row" style="margin-top: 14px;">
+                        <button id="uploadButton">Загрузить</button>
+                    </div>
+                    <div id="uploadStatus" class="status-line"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const state = {
+            fio: localStorage.getItem("elcut-fio") || "",
+            profile: null,
+            tasks: {},
+            activeSubtask: "1.1"
+        };
+
+        const fioInput = document.getElementById("fioInput");
+        const loginButton = document.getElementById("loginButton");
+        const logoutButton = document.getElementById("logoutButton");
+        const loginStatus = document.getElementById("loginStatus");
+        const profilePanel = document.getElementById("profilePanel");
+        const statusPanel = document.getElementById("statusPanel");
+        const workspacePanel = document.getElementById("workspacePanel");
+        const profileName = document.getElementById("profileName");
+        const variant1Value = document.getElementById("variant1Value");
+        const variant23Value = document.getElementById("variant23Value");
+        const refreshStatusButton = document.getElementById("refreshStatusButton");
+        const statusGrid = document.getElementById("statusGrid");
+        const taskButtons = document.getElementById("taskButtons");
+        const fieldsContainer = document.getElementById("fieldsContainer");
+        const taskHint = document.getElementById("taskHint");
+        const checkButton = document.getElementById("checkButton");
+        const clearButton = document.getElementById("clearButton");
+        const checkStatus = document.getElementById("checkStatus");
+        const resultBox = document.getElementById("resultBox");
+        const resultList = document.getElementById("resultList");
+        const uploadTaskSelect = document.getElementById("uploadTaskSelect");
+        const uploadInput = document.getElementById("uploadInput");
+        const uploadButton = document.getElementById("uploadButton");
+        const uploadStatus = document.getElementById("uploadStatus");
+
+        fioInput.value = state.fio;
+
+        function setStatus(node, text, kind = "") {
+            node.textContent = text;
+            node.className = "status-line" + (kind ? " " + kind : "");
+        }
+
+        async function api(path, payload, isFormData = false) {
+            const options = {
+                method: "POST",
+                headers: {},
+                body: null
+            };
+
+            if (isFormData) {
+                options.body = payload;
+            } else {
+                options.headers["Content-Type"] = "application/json";
+                options.body = JSON.stringify(payload);
+            }
+
+            const response = await fetch(path, options);
+            const data = await response.json();
+            if (!response.ok || !data.ok) {
+                throw new Error(data.error || "Ошибка запроса.");
+            }
+            return data;
+        }
+
+        function showApp() {
+            profilePanel.classList.remove("hidden");
+            statusPanel.classList.remove("hidden");
+            workspacePanel.classList.remove("hidden");
+        }
+
+        function hideApp() {
+            profilePanel.classList.add("hidden");
+            statusPanel.classList.add("hidden");
+            workspacePanel.classList.add("hidden");
+        }
+
+        function renderProfile() {
+            if (!state.profile) {
+                hideApp();
+                return;
+            }
+
+            showApp();
+            profileName.textContent = state.profile.fio;
+            variant1Value.textContent = state.profile.variant1 || "-";
+            variant23Value.textContent = state.profile.variant23 || "-";
+        }
+
+        function renderStatus(cards) {
+            statusGrid.innerHTML = "";
+            cards.forEach((card) => {
+                const accepted = card.accepted_at
+                    ? `<span class="tag good">Принято</span>`
+                    : card.last_attempt_at
+                        ? `<span class="tag bad">Есть расхождения</span>`
+                        : `<span class="tag">Еще не проверялось</span>`;
+
+                const filesTag = card.upload_count > 0
+                    ? `<span class="tag good">Файлы: ${card.upload_count}</span>`
+                    : `<span class="tag bad">Файлы не загружены</span>`;
+
+                const node = document.createElement("article");
+                node.className = "status-card";
+                node.innerHTML = `
+                    <h3>Задача ${card.subtask}</h3>
+                    <p class="muted">Вариант: ${card.variant || "-"}</p>
+                    <div class="row" style="margin: 10px 0 12px;">${accepted}${filesTag}</div>
+                    <p>Попыток: <strong>${card.attempt_count}</strong></p>
+                    <p>Принято: <strong>${card.accepted_at || "нет"}</strong></p>
+                    <p>Последняя попытка: <strong>${card.last_attempt_at || "нет"}</strong></p>
+                `;
+                statusGrid.appendChild(node);
+            });
+        }
+
+        function renderTaskButtons() {
+            taskButtons.innerHTML = "";
+            Object.keys(state.tasks).forEach((subtask) => {
+                const button = document.createElement("button");
+                button.textContent = `Задача ${subtask}`;
+                if (subtask === state.activeSubtask) {
+                    button.classList.add("active");
+                }
+                button.addEventListener("click", () => {
+                    state.activeSubtask = subtask;
+                    renderTaskButtons();
+                    renderFields();
+                });
+                taskButtons.appendChild(button);
+            });
+        }
+
+        function renderFields() {
+            const task = state.tasks[state.activeSubtask];
+            fieldsContainer.innerHTML = "";
+            resultBox.classList.add("hidden");
+            resultList.innerHTML = "";
+            setStatus(checkStatus, "", "");
+
+            if (!task) {
+                return;
+            }
+
+            const fieldNames = task.fields || [];
+            taskHint.textContent = `Задача ${task.subtask}. Вариант ${task.variant || "-"}. Введи ${fieldNames.length} значений.`;
+
+            fieldNames.forEach((fieldName, index) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "field-card";
+                wrapper.innerHTML = `
+                    <label for="field-${index}">${fieldName}</label>
+                    <input id="field-${index}" data-index="${index}" type="text" inputmode="decimal" placeholder="Введите число">
+                `;
+                fieldsContainer.appendChild(wrapper);
+            });
+        }
+
+        function collectValues() {
+            const inputs = fieldsContainer.querySelectorAll("input");
+            return Array.from(inputs).map((input) => input.value.trim());
+        }
+
+        async function login() {
+            const fio = fioInput.value.trim();
+            if (!fio) {
+                setStatus(loginStatus, "Введите ФИО.", "bad");
+                return;
+            }
+
+            setStatus(loginStatus, "Ищу пользователя...", "");
+            try {
+                const data = await api("/api/login", { fio });
+                state.fio = data.profile.fio;
+                state.profile = data.profile;
+                state.tasks = data.tasks;
+                state.activeSubtask = "1.1";
+                localStorage.setItem("elcut-fio", state.fio);
+                fioInput.value = state.fio;
+
+                renderProfile();
+                renderStatus(data.status);
+                renderTaskButtons();
+                renderFields();
+                setStatus(loginStatus, "Вход выполнен.", "good");
+            } catch (error) {
+                hideApp();
+                setStatus(loginStatus, error.message, "bad");
+            }
+        }
+
+        async function refreshStatus() {
+            if (!state.fio) {
+                return;
+            }
+            try {
+                const data = await api("/api/status", { fio: state.fio });
+                renderStatus(data.status);
+            } catch (error) {
+                setStatus(loginStatus, error.message, "bad");
+            }
+        }
+
+        async function checkTask() {
+            if (!state.fio) {
+                setStatus(checkStatus, "Сначала войдите по ФИО.", "bad");
+                return;
+            }
+
+            const values = collectValues();
+            if (values.some((value) => !value)) {
+                setStatus(checkStatus, "Заполните все поля.", "bad");
+                return;
+            }
+
+            setStatus(checkStatus, "Проверяю...", "");
+            try {
+                const data = await api("/api/check", {
+                    fio: state.fio,
+                    subtask: state.activeSubtask,
+                    values
+                });
+
+                renderStatus(data.status);
+                setStatus(
+                    checkStatus,
+                    data.accepted ? "Работа засчитана." : "Обнаружены расхождения.",
+                    data.accepted ? "good" : "bad"
+                );
+
+                const labels = state.tasks[state.activeSubtask].fields;
+                resultList.innerHTML = "";
+                data.errors_pct.forEach((errorValue, index) => {
+                    const item = document.createElement("li");
+                    item.textContent = `${labels[index]}: ${errorValue}%`;
+                    resultList.appendChild(item);
+                });
+                resultBox.classList.remove("hidden");
+            } catch (error) {
+                setStatus(checkStatus, error.message, "bad");
+            }
+        }
+
+        async function uploadFiles() {
+            if (!state.fio) {
+                setStatus(uploadStatus, "Сначала войдите по ФИО.", "bad");
+                return;
+            }
+
+            const files = Array.from(uploadInput.files || []);
+            if (files.length !== 3) {
+                setStatus(uploadStatus, "Выберите ровно 3 файла.", "bad");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("fio", state.fio);
+            formData.append("subtask", uploadTaskSelect.value);
+            files.forEach((file) => formData.append("files", file, file.name));
+
+            setStatus(uploadStatus, "Загружаю файлы...", "");
+            try {
+                const data = await api("/api/upload", formData, true);
+                renderStatus(data.status);
+                setStatus(uploadStatus, `Файлы сохранены: ${data.saved_files.join(", ")}`, "good");
+                uploadInput.value = "";
+            } catch (error) {
+                setStatus(uploadStatus, error.message, "bad");
+            }
+        }
+
+        function logout() {
+            state.fio = "";
+            state.profile = null;
+            state.tasks = {};
+            localStorage.removeItem("elcut-fio");
+            fioInput.value = "";
+            hideApp();
+            statusGrid.innerHTML = "";
+            fieldsContainer.innerHTML = "";
+            taskButtons.innerHTML = "";
+            resultList.innerHTML = "";
+            resultBox.classList.add("hidden");
+            setStatus(loginStatus, "Профиль очищен.", "");
+            setStatus(checkStatus, "", "");
+            setStatus(uploadStatus, "", "");
+        }
+
+        loginButton.addEventListener("click", login);
+        logoutButton.addEventListener("click", logout);
+        refreshStatusButton.addEventListener("click", refreshStatus);
+        checkButton.addEventListener("click", checkTask);
+        clearButton.addEventListener("click", () => {
+            fieldsContainer.querySelectorAll("input").forEach((input) => {
+                input.value = "";
+            });
+            setStatus(checkStatus, "Поля очищены.", "");
+        });
+        uploadButton.addEventListener("click", uploadFiles);
+        fioInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                login();
+            }
+        });
+
+        if (state.fio) {
+            login();
+        }
+    </script>
+</body>
+</html>
