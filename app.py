@@ -204,7 +204,7 @@ def get_students_report_rows() -> list[dict[str, Any]]:
     fio_col = mapping.get("fio") or ""
     v1_col = mapping.get("variant1") or ""
     v23_col = mapping.get("variant23") or ""
-    group_col = "№ гр." if "№ гр." in cols else ("Группа" if "Группа" in cols else "")
+    group_col = cols[2] if len(cols) >= 3 else ("№ гр." if "№ гр." in cols else ("Группа" if "Группа" in cols else ""))
     if not fio_col:
         conn.close()
         return []
@@ -335,6 +335,11 @@ def theory_content_type(path: Path) -> str:
     return "application/octet-stream"
 
 
+def content_disposition(disposition: str, filename: str) -> str:
+    ascii_name = re.sub(r'[^A-Za-z0-9._ -]+', "_", filename).strip() or "download"
+    return f"{disposition}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
+
+
 class AppHandler(BaseHTTPRequestHandler):
     server_version = "ElcutWeb/1.0"
 
@@ -389,6 +394,9 @@ class AppHandler(BaseHTTPRequestHandler):
                 return
             if parsed.path == "/Front-VS-Behind-meter.png":
                 self.send_file(BASE_DIR.parent / "Front-VS-Behind-meter.png")
+                return
+            if parsed.path in ("/favicon.png", "/pngwing.com.png"):
+                self.send_file(BASE_DIR.parent / "pngwing.com.png")
                 return
             if parsed.path == "/api/theory":
                 self.handle_theory_list()
@@ -491,7 +499,7 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Accept-Ranges", "bytes")
         disposition = "inline" if path.suffix in (".mkv", ".pdf") else "attachment"
-        self.send_header("Content-Disposition", f'{disposition}; filename="{path.name}"')
+        self.send_header("Content-Disposition", content_disposition(disposition, path.name))
         self.send_header("Content-Length", str(total_size))
         self.end_headers()
         with open(path, "rb") as stream:
@@ -652,7 +660,7 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "application/zip")
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Content-Disposition", f'attachment; filename="{archive_name}"')
+        self.send_header("Content-Disposition", content_disposition("attachment", archive_name))
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
