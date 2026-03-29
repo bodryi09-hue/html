@@ -5,47 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elcut Energy Portal</title>
     <style>
-        :root{--bg:#07131f;--panel:rgba(7,23,35,.78);--line:rgba(170,214,255,.18);--line2:rgba(170,214,255,.36);--text:#e8f4ff;--muted:#90a7bb;--accent:#4ec2ff;--accent2:#7effc7;--warm:#ffd36c;--good:#67f0a4;--bad:#ff8d7d;--shadow:0 28px 90px rgba(0,0,0,.34)}
-        *{box-sizing:border-box} html{scroll-behavior:smooth}
-        body{margin:0;min-height:100vh;color:var(--text);font-family:"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,rgba(3,12,19,.76),rgba(3,12,19,.92)),radial-gradient(circle at top,rgba(78,194,255,.12),transparent 30%),linear-gradient(135deg,#07131f,#0a1724 45%,#06131f);overflow-x:hidden}
+        :root{--panel:rgba(7,23,35,.82);--line:rgba(170,214,255,.18);--line2:rgba(170,214,255,.34);--text:#e8f4ff;--muted:#90a7bb;--accent:#4ec2ff;--accent2:#7effc7;--good:#67f0a4;--bad:#ff8d7d;--shadow:0 20px 70px rgba(0,0,0,.34)}
+        *{box-sizing:border-box} html,body{min-height:100%}
+        body{margin:0;color:var(--text);font-family:"Segoe UI",Tahoma,sans-serif;background:linear-gradient(180deg,rgba(3,12,19,.76),rgba(3,12,19,.92)),radial-gradient(circle at top,rgba(78,194,255,.12),transparent 30%),linear-gradient(135deg,#07131f,#0a1724 45%,#06131f)}
         body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(148,193,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,193,255,.05) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;mask-image:linear-gradient(to bottom,rgba(0,0,0,.55),transparent 85%)}
-        .shell{width:min(1260px,calc(100% - 28px));margin:20px auto 40px;display:grid;gap:18px}
-        .topbar,.panel,.hero-card,.status-card,.lab-panel{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
-        .topbar{position:sticky;top:14px;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 18px;border-radius:18px}
-        .brand{display:flex;align-items:center;gap:14px}.brand-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;color:#032033;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-        .brand strong{display:block;font-size:1rem;letter-spacing:.08em;text-transform:uppercase}.brand span{color:var(--muted);font-size:.92rem}
-        .nav,.row,.task-buttons{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-        .nav button,button{border:1px solid rgba(170,214,255,.12);border-radius:14px;padding:12px 16px;color:var(--text);background:linear-gradient(180deg,rgba(30,56,76,.94),rgba(14,32,46,.94));cursor:pointer;transition:.18s transform,.18s border-color,.18s background}
-        .nav button:hover,button:hover{transform:translateY(-1px);border-color:rgba(170,214,255,.34);background:linear-gradient(180deg,rgba(40,83,112,.98),rgba(18,45,64,.98))}
-        .nav button.active,.task-buttons button.active{color:#05131f;background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
+        .shell{width:min(1240px,calc(100% - 24px));margin:12px auto 20px;display:grid;gap:12px}
+        .topbar,.hero,.page-panel,.side-panel,.status-card{background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+        .topbar{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:start;gap:12px;padding:12px 14px;border-radius:18px}
+        .brand{display:flex;align-items:center;gap:12px;min-width:0}.brand-mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-weight:800;color:#032033;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+        .brand strong{display:block;font-size:1rem;letter-spacing:.08em;text-transform:uppercase}.brand span{display:block;color:var(--muted);font-size:.86rem}
+        .nav,.row,.task-buttons,.top-profile{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+        button{min-height:46px;border:1px solid rgba(170,214,255,.12);border-radius:14px;padding:11px 14px;color:var(--text);background:linear-gradient(180deg,rgba(30,56,76,.94),rgba(14,32,46,.94));cursor:pointer;transition:.18s transform,.18s border-color,.18s background}
+        button:hover{transform:translateY(-1px);border-color:rgba(170,214,255,.34);background:linear-gradient(180deg,rgba(40,83,112,.98),rgba(18,45,64,.98))}
+        button.active{color:#05131f;background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent}
         button.secondary{background:linear-gradient(180deg,rgba(35,43,52,.96),rgba(18,23,29,.96))}
-        .hero{position:relative;min-height:520px;border-radius:30px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:linear-gradient(180deg,rgba(6,16,25,.22),rgba(6,16,25,.88)),url("/Front-VS-Behind-meter.png") center/cover no-repeat}
-        .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,211,108,.18),transparent 32%),linear-gradient(180deg,transparent 28%,rgba(2,10,16,.78) 84%),radial-gradient(circle at 80% 15%,rgba(78,194,255,.22),transparent 26%)}
-        .hero-inner{position:relative;z-index:1;min-height:520px;padding:34px;display:grid;grid-template-columns:1.2fr .85fr;gap:24px;align-items:end}
-        .eyebrow{display:inline-flex;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(5,18,29,.54);border:1px solid rgba(255,255,255,.12);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase}
-        h1,h2,h3,p{margin:0} h1{margin-top:16px;font-size:clamp(2.5rem,6vw,5.2rem);line-height:.96;max-width:8.5ch;text-shadow:0 8px 40px rgba(0,0,0,.38)}
-        .lead{margin-top:18px;max-width:50ch;font-size:1.05rem;color:#d8e6f4}
-        .hero-metrics,.profile-grid,.status-grid,.timeline{display:grid;gap:12px}.hero-metrics{margin-top:22px;grid-template-columns:repeat(3,minmax(0,1fr))}
-        .metric,.mini-card,.guide-box,.result-box,.upload-box,.field-card,.timeline-item{border:1px solid var(--line);border-radius:18px;background:rgba(5,15,23,.54)}
-        .metric,.mini-card{padding:16px}.metric strong,.mini-card strong{display:block;font-size:1.35rem;margin-top:6px}
-        .hero-card,.panel,.lab-panel{border-radius:24px;padding:22px}.hero-card h2{margin-bottom:12px}
-        .field-label{display:block;margin-bottom:8px;color:#dbe8f5;font-weight:700}
-        input,select{width:100%;border:1px solid rgba(170,214,255,.16);border-radius:14px;padding:13px 14px;font:inherit;color:var(--text);background:rgba(5,15,23,.74);outline:none;transition:.16s border-color,.16s box-shadow}
-        input:focus,select:focus{border-color:rgba(78,194,255,.72);box-shadow:0 0 0 4px rgba(78,194,255,.12)}
-        .status-line{min-height:24px;margin-top:12px;font-weight:700}.status-line.good{color:var(--good)}.status-line.bad{color:var(--bad)}
-        .hidden{display:none!important}.page{display:none;animation:page-enter .38s ease}.page.active{display:block}
-        @keyframes page-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-        .panel-header{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.panel-header p,.muted,.footer-note{color:var(--muted)}
-        .overview-grid,.lab-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.profile-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-        .status-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.status-card{padding:16px}.status-card h3{margin-bottom:10px;font-size:1.06rem}
-        .tag{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:.85rem;font-weight:700;margin-right:8px;margin-bottom:8px;background:rgba(145,168,188,.13)}
+        .top-profile{justify-content:flex-end;min-width:0;align-items:stretch}
+        .chip{padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(5,15,23,.54);min-width:0}
+        .chip span{display:block;color:var(--muted);font-size:.78rem}.chip strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .top-status{display:flex;align-items:center;min-height:46px;padding:0 4px;color:var(--muted);font-size:.9rem}
+        input,select,textarea{width:100%;min-height:46px;border:1px solid rgba(170,214,255,.16);border-radius:14px;padding:12px 13px;font:inherit;color:var(--text);background:rgba(5,15,23,.74);outline:none}
+        input:focus,select:focus,textarea:focus{border-color:rgba(78,194,255,.72);box-shadow:0 0 0 4px rgba(78,194,255,.12)}
+        textarea{min-height:180px;resize:vertical;line-height:1.35}
+        .mini-input{width:220px}
+        h1,h2,h3,p{margin:0}
+        .field-card,.result-box,.upload-box,.side-box{border:1px solid var(--line);border-radius:18px;background:rgba(5,15,23,.54)}
+        .status-line{min-height:22px;margin-top:10px;font-weight:700}.status-line.good{color:var(--good)}.status-line.bad{color:var(--bad)}
+        .pages{min-height:0}.page{display:none;animation:page-enter .28s ease}.page.active{display:block}
+        @keyframes page-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+        .overview-layout,.work-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:12px;align-items:start}
+        .overview-layout{grid-template-columns:minmax(0,1fr)}
+        .page-panel,.side-panel{border-radius:22px;padding:16px}
+        .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+        .panel-head p,.muted{color:var(--muted)}
+        .task-meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+        .task-badge{display:inline-flex;padding:7px 12px;border-radius:999px;border:1px solid var(--line2);background:rgba(78,194,255,.12);font-size:.84rem;font-weight:700}
+        .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:start}
+        .status-card{border-radius:16px;padding:14px}
+        .status-card h3{margin-bottom:8px;font-size:1.02rem}
+        .totals-table{width:100%;border-collapse:collapse;font-size:.92rem}
+        .totals-table th,.totals-table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+        .totals-table th{color:#d8efff;font-weight:700}
+        .totals-task{margin-bottom:8px}
+        .totals-task:last-child{margin-bottom:0}
+        .tag{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:.82rem;font-weight:700;margin-right:8px;margin-bottom:8px;background:rgba(145,168,188,.13)}
         .tag.good{color:var(--good);background:rgba(103,240,164,.12)} .tag.bad{color:var(--bad);background:rgba(255,141,125,.12)}
-        .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:14px}.field-card{padding:12px;transition:.16s transform,.16s border-color,.16s background}
-        .field-card:hover{transform:translateY(-1px);border-color:var(--line2);background:rgba(7,22,34,.65)} .field-card label{display:block;font-weight:700;margin-bottom:8px;color:#d9eef9}
-        .result-box,.upload-box,.guide-box{padding:16px}.result-list{margin:12px 0 0;padding-left:18px}.result-list li{margin-bottom:7px;color:#d4e7f7}
-        .timeline-item{padding:14px 14px 14px 18px;border-left:2px solid rgba(78,194,255,.34);border-radius:0 16px 16px 0}.timeline-item strong{display:block;margin-bottom:4px}
-        @media (max-width:980px){.hero-inner,.overview-grid,.lab-layout{grid-template-columns:1fr}.hero-metrics,.profile-grid{grid-template-columns:1fr}}
-        @media (max-width:640px){.shell{width:min(100% - 16px,1260px);margin-top:10px}.topbar{top:8px;padding:12px}.hero-card,.panel,.lab-panel{padding:18px}.hero-inner{padding:18px}}
+        .task-buttons{margin-bottom:12px}
+        .field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding-right:4px;align-items:start}
+        .field-card{padding:10px}.field-card label{display:block;font-weight:700;margin-bottom:7px;color:#d9eef9}
+        .field-card.row-break{grid-column:1}
+        .result-box,.upload-box,.side-box{padding:14px}
+        .result-list{margin:10px 0 0;padding-left:18px}.result-list li{margin-bottom:6px;color:#d4e7f7}
+        .side-stack{display:grid;gap:12px;align-content:start}
+        .matrix-box{display:grid;gap:10px}
+        .theory-media{width:100%;margin-top:12px;border-radius:14px;background:#000;overflow:hidden}
+        .theory-media video{display:block;width:100%;max-height:260px;background:#000}
+        .theory-media iframe{display:block;width:100%;height:420px;border:0;background:#fff}
+        .hidden{display:none!important}
+        @media (max-width:1100px){.topbar{grid-template-columns:1fr}.overview-layout,.work-layout{grid-template-columns:1fr}.top-profile{justify-content:flex-start}.mini-input{width:100%}}
+        @media (max-width:820px){.nav{justify-content:flex-start}.top-profile{justify-content:flex-start}}
+        @media (max-width:640px){body{overflow:auto}.shell{width:min(100% - 16px,1240px)}.page-panel,.side-panel,.topbar{padding:14px}.status-grid,.field-grid{grid-template-columns:1fr}.field-card.row-break{grid-column:auto}}
     </style>
 </head>
 <body>
@@ -53,145 +71,165 @@
         <header class="topbar">
             <div class="brand">
                 <div class="brand-mark">E</div>
-                <div><strong>Elcut Energy Portal</strong><span>Лабораторный контроль по электроэнергетике</span></div>
+                <div><strong>Elcut</strong><span>Energy Portal</span></div>
             </div>
             <nav id="pageNav" class="nav">
                 <button class="active" data-page="overview">Обзор</button>
                 <button data-page="check">Проверка</button>
                 <button data-page="upload">Материалы</button>
+                <button data-page="theory">Теория</button>
+                <button id="totalsNavButton" class="hidden" data-page="totals">Итоги</button>
             </nav>
+            <div class="top-profile">
+                <div class="chip"><span>Профиль</span><strong id="profileNameTop">Гость</strong></div>
+                <input id="fioInput" class="mini-input" type="text" placeholder="Фамилия Имя">
+                <button id="loginButton">Войти</button>
+                <button id="logoutButton" class="secondary">Очистить</button>
+                <div id="loginStatus" class="top-status"></div>
+            </div>
         </header>
 
-        <section class="hero">
-            <div class="hero-inner">
-                <div>
-                    <div class="eyebrow">Солнечная генерация · Ветер · Сети</div>
-                    <h1>Энергетический портал проверки работ</h1>
-                    <p class="lead">Веб-версия учебного комплекса для проверки задач, контроля вариантов и загрузки проектных материалов. Интерфейс построен в логике современной электроэнергетики: генерация, надежность, прозрачность расчета.</p>
-                    <div class="hero-metrics">
-                        <div class="metric"><span class="muted">Контрольные задачи</span><strong>5</strong></div>
-                        <div class="metric"><span class="muted">Типы файлов</span><strong>3</strong></div>
-                        <div class="metric"><span class="muted">Единый профиль</span><strong>1</strong></div>
+        <section class="pages">
+            <section id="page-overview" class="page active">
+                <div class="overview-layout">
+                    <div id="statusPanel" class="page-panel hidden">
+                        <div class="panel-head">
+                            <div><h2>Панель</h2><p>Принятие, попытки и загрузки по всем задачам.</p></div>
+                        </div>
+                        <div id="statusGrid" class="status-grid"></div>
                     </div>
                 </div>
-                <aside class="hero-card">
-                    <h2>Вход в систему</h2>
-                    <label class="field-label" for="fioInput">Фамилия и имя</label>
-                    <input id="fioInput" type="text" placeholder="Например: Иванов Иван">
-                    <div class="row" style="margin-top:12px">
-                        <button id="loginButton">Подключиться</button>
-                        <button id="logoutButton" class="secondary">Очистить профиль</button>
-                    </div>
-                    <div id="loginStatus" class="status-line"></div>
-                    <p class="footer-note" style="margin-top:12px">После входа откроются обзор статуса, расчетная лаборатория и модуль загрузки материалов.</p>
-                </aside>
-            </div>
-        </section>
+            </section>
 
-        <section id="page-overview" class="page active">
-            <div id="profilePanel" class="panel hidden">
-                <div class="panel-header">
-                    <div><h2 id="profileName">Профиль студента</h2><p>Активный профиль и назначенные варианты по дисциплине.</p></div>
-                    <button id="refreshStatusButton" class="secondary">Обновить данные</button>
+            <section id="page-check" class="page">
+                <div class="work-layout">
+                    <div id="workspacePanel" class="page-panel hidden">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Расчетная лаборатория</h2>
+                                <div class="task-meta" style="margin-top:8px">
+                                <p id="taskHint">Выберите задачу.</p>
+                                    <span id="taskVariantBadge" class="task-badge hidden">Вариант -</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="taskButtons" class="task-buttons"></div>
+                        <div id="fieldsContainer" class="field-grid"></div>
+                        <div class="row" style="margin-top:12px">
+                            <button id="checkButton">Проверить</button>
+                            <button id="clearButton" class="secondary">Очистить поля</button>
+                        </div>
+                        <div id="checkStatus" class="status-line"></div>
+                        <div id="resultBox" class="result-box hidden" style="margin-top:12px">
+                            <h3>Погрешности</h3>
+                            <ul id="resultList" class="result-list"></ul>
+                        </div>
+                    </div>
+                    <aside class="side-panel">
+                        <div class="side-stack">
+                            <div class="side-box">
+                                <h3>Подсказка</h3>
+                                <p id="checkHintText" class="muted">Используй точку или запятую. Порядок полей соответствует варианту из базы.</p>
+                            </div>
+                            <div class="side-box">
+                                <h3>Результат</h3>
+                                <p class="muted">После проверки статус в разделе обзора обновляется автоматически.</p>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
-                <div class="profile-grid">
-                    <div class="mini-card"><span class="muted">Вариант для задачи 1</span><strong id="variant1Value">-</strong></div>
-                    <div class="mini-card"><span class="muted">Вариант для задач 2-3</span><strong id="variant23Value">-</strong></div>
-                    <div class="mini-card"><span class="muted">Текущий режим</span><strong>Веб-проверка</strong></div>
+            </section>
+
+            <section id="page-upload" class="page">
+                <div class="work-layout">
+                    <div class="page-panel">
+                        <div class="panel-head">
+                            <div><h2>Материалы</h2><p>Загрузка проектных файлов по выбранной задаче.</p></div>
+                        </div>
+                        <div class="upload-box">
+                            <label for="uploadTaskSelect" class="muted">Задача</label>
+                            <select id="uploadTaskSelect" style="margin-top:8px">
+                                <option value="1.1">1.1</option>
+                                <option value="1.2">1.2</option>
+                                <option value="1.3">1.3</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                            <p class="muted" style="margin:12px 0 10px">Нужен полный комплект: <code>.pbm</code>, <code>.mod</code>, <code>.des</code>.</p>
+                            <input id="uploadInput" type="file" multiple>
+                            <div class="row" style="margin-top:12px">
+                                <button id="uploadButton">Передать комплект</button>
+                            </div>
+                            <div id="uploadStatus" class="status-line"></div>
+                        </div>
+                    </div>
+                    <aside class="side-panel">
+                        <div class="side-stack">
+                            <div class="side-box">
+                                <h3>Имена файлов</h3>
+                                <p class="muted">Например: <code>alpha.pbm</code>, <code>alpha.mod</code>, <code>alpha.des</code>.</p>
+                            </div>
+                            <div class="side-box">
+                                <h3>Комплектность</h3>
+                                <p class="muted">Система принимает только три файла с одинаковым базовым именем.</p>
+                            </div>
+                        </div>
+                    </aside>
                 </div>
-            </div>
-            <div id="statusPanel" class="panel hidden" style="margin-top:18px">
-                <div class="panel-header">
-                    <div><h2>Панель состояния</h2><p>Ход выполнения лабораторных работ и история допуска по задачам.</p></div>
+            </section>
+
+            <section id="page-theory" class="page">
+                <div class="overview-layout">
+                    <div class="page-panel">
+                        <div class="panel-head">
+                            <div><h2>Теория</h2><p>Видео и файлы по курсу в одном списке.</p></div>
+                        </div>
+                        <div id="theoryList" class="status-grid"></div>
+                    </div>
                 </div>
-                <div class="overview-grid">
-                    <div id="statusGrid" class="status-grid"></div>
-                    <div class="guide-box">
-                        <h3 style="margin-bottom:12px">Как работать с порталом</h3>
-                        <div class="timeline">
-                            <div class="timeline-item"><strong>1. Авторизация</strong><span class="muted">Введи фамилию и имя, чтобы подтянуть вариант и личный статус.</span></div>
-                            <div class="timeline-item"><strong>2. Проверка расчетов</strong><span class="muted">Переключись на вкладку "Проверка", выбери задачу и введи значения.</span></div>
-                            <div class="timeline-item"><strong>3. Передача материалов</strong><span class="muted">На вкладке "Материалы" загрузи комплект `.pbm`, `.mod`, `.des`.</span></div>
+            </section>
+
+            <section id="page-totals" class="page">
+                <div class="overview-layout">
+                    <div class="page-panel">
+                        <div class="panel-head">
+                            <div><h2>Итоги</h2><p>Сводка по студентам, проверкам и материалам.</p></div>
+                        </div>
+                        <div id="totalsContent" class="side-box">
+                            <p class="muted">Войди как преподаватель, чтобы увидеть таблицу.</p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="page-check" class="page">
-            <div class="lab-layout">
-                <div id="workspacePanel" class="lab-panel hidden">
-                    <div class="panel-header"><div><h2>Расчетная лаборатория</h2><p id="taskHint">Выберите задачу, затем введите значения и отправьте на проверку.</p></div></div>
-                    <div id="taskButtons" class="task-buttons"></div>
-                    <div id="fieldsContainer" class="field-grid"></div>
-                    <div class="row" style="margin-top:16px">
-                        <button id="checkButton">Запустить проверку</button>
-                        <button id="clearButton" class="secondary">Очистить поля</button>
-                    </div>
-                    <div id="checkStatus" class="status-line"></div>
-                    <div id="resultBox" class="result-box hidden" style="margin-top:14px">
-                        <h3>Карта погрешностей</h3>
-                        <ul id="resultList" class="result-list"></ul>
-                    </div>
-                </div>
-                <aside class="lab-panel">
-                    <h2>Режим анализа</h2>
-                    <div class="guide-box" style="margin-top:12px"><h3 style="margin-bottom:10px">Что показывает система</h3><p class="muted">Для каждого введенного параметра портал считает относительную погрешность и сравнивает ее с допуском. После проверки статус на обзорной панели обновляется автоматически.</p></div>
-                    <div class="guide-box" style="margin-top:14px"><h3 style="margin-bottom:10px">Подсказка по вводу</h3><p class="muted">Используй десятичную точку или запятую. Порядок полей соответствует варианту, который назначен тебе в базе данных.</p></div>
-                </aside>
-            </div>
-        </section>
-
-        <section id="page-upload" class="page">
-            <div class="lab-layout">
-                <div class="lab-panel">
-                    <div class="panel-header"><div><h2>Передача материалов</h2><p>Загрузка проектных файлов по выбранной задаче.</p></div></div>
-                    <div class="upload-box">
-                        <label class="field-label" for="uploadTaskSelect">Задача</label>
-                        <select id="uploadTaskSelect">
-                            <option value="1.1">1.1</option><option value="1.2">1.2</option><option value="1.3">1.3</option><option value="2">2</option><option value="3">3</option>
-                        </select>
-                        <p class="muted" style="margin:14px 0 10px">Загрузи ровно три файла с одинаковым базовым именем: <code>.pbm</code>, <code>.mod</code>, <code>.des</code>.</p>
-                        <input id="uploadInput" type="file" multiple>
-                        <div class="row" style="margin-top:14px"><button id="uploadButton">Передать комплект</button></div>
-                        <div id="uploadStatus" class="status-line"></div>
-                    </div>
-                </div>
-                <aside class="lab-panel">
-                    <h2>Требования к комплекту</h2>
-                    <div class="timeline" style="margin-top:12px">
-                        <div class="timeline-item"><strong>Имена файлов</strong><span class="muted">Например: `alpha.pbm`, `alpha.mod`, `alpha.des`.</span></div>
-                        <div class="timeline-item"><strong>Комплектность</strong><span class="muted">Система принимает только полный набор из трех файлов.</span></div>
-                        <div class="timeline-item"><strong>Распределение</strong><span class="muted">Для задач 2 и 3 материалы автоматически учитываются по общему варианту.</span></div>
-                    </div>
-                </aside>
-            </div>
+            </section>
         </section>
     </main>
 
     <script>
         const API_BASE=["127.0.0.1","localhost"].includes(window.location.hostname)?"":"http://127.0.0.1:8000";
-        const state={fio:localStorage.getItem("elcut-fio")||"",profile:null,tasks:{},activeSubtask:"1.1"};
-        const fioInput=document.getElementById("fioInput"),loginButton=document.getElementById("loginButton"),logoutButton=document.getElementById("logoutButton"),loginStatus=document.getElementById("loginStatus"),profilePanel=document.getElementById("profilePanel"),statusPanel=document.getElementById("statusPanel"),workspacePanel=document.getElementById("workspacePanel"),profileName=document.getElementById("profileName"),variant1Value=document.getElementById("variant1Value"),variant23Value=document.getElementById("variant23Value"),refreshStatusButton=document.getElementById("refreshStatusButton"),statusGrid=document.getElementById("statusGrid"),taskButtons=document.getElementById("taskButtons"),fieldsContainer=document.getElementById("fieldsContainer"),taskHint=document.getElementById("taskHint"),checkButton=document.getElementById("checkButton"),clearButton=document.getElementById("clearButton"),checkStatus=document.getElementById("checkStatus"),resultBox=document.getElementById("resultBox"),resultList=document.getElementById("resultList"),uploadTaskSelect=document.getElementById("uploadTaskSelect"),uploadInput=document.getElementById("uploadInput"),uploadButton=document.getElementById("uploadButton"),uploadStatus=document.getElementById("uploadStatus"),navButtons=document.querySelectorAll("#pageNav button"),pages=document.querySelectorAll(".page");
+        const state={fio:localStorage.getItem("elcut-fio")||"",profile:null,tasks:{},activeSubtask:"1.1",isTeacher:false,totalsRows:[]};
+        const fioInput=document.getElementById("fioInput"),loginButton=document.getElementById("loginButton"),logoutButton=document.getElementById("logoutButton"),loginStatus=document.getElementById("loginStatus"),statusPanel=document.getElementById("statusPanel"),workspacePanel=document.getElementById("workspacePanel"),profileNameTop=document.getElementById("profileNameTop"),statusGrid=document.getElementById("statusGrid"),taskButtons=document.getElementById("taskButtons"),fieldsContainer=document.getElementById("fieldsContainer"),taskHint=document.getElementById("taskHint"),taskVariantBadge=document.getElementById("taskVariantBadge"),checkHintText=document.getElementById("checkHintText"),checkButton=document.getElementById("checkButton"),clearButton=document.getElementById("clearButton"),checkStatus=document.getElementById("checkStatus"),resultBox=document.getElementById("resultBox"),resultList=document.getElementById("resultList"),uploadTaskSelect=document.getElementById("uploadTaskSelect"),uploadInput=document.getElementById("uploadInput"),uploadButton=document.getElementById("uploadButton"),uploadStatus=document.getElementById("uploadStatus"),theoryList=document.getElementById("theoryList"),totalsNavButton=document.getElementById("totalsNavButton"),totalsContent=document.getElementById("totalsContent"),navButtons=document.querySelectorAll("#pageNav button"),pages=document.querySelectorAll(".page");
         fioInput.value=state.fio;
         function setStatus(node,text,kind=""){node.textContent=text;node.className="status-line"+(kind?" "+kind:"")}
-        function switchPage(pageName){pages.forEach(page=>page.classList.toggle("active",page.id===`page-${pageName}`));navButtons.forEach(button=>button.classList.toggle("active",button.dataset.page===pageName))}
-        async function api(path,payload,isFormData=false){const options={method:"POST",headers:{},body:null}; if(isFormData){options.body=payload}else{options.headers["Content-Type"]="application/json";options.body=JSON.stringify(payload)} let response; try{response=await fetch(`${API_BASE}${path}`,options)}catch(error){throw new Error("Не удалось подключиться к локальному серверу. Запусти python app.py.")} const raw=await response.text(); let data; try{data=raw?JSON.parse(raw):{}}catch(error){throw new Error("Сервер вернул не JSON. Открой страницу через python app.py или оставь сервер запущенным.")} if(!response.ok||!data.ok){throw new Error(data.error||"Ошибка запроса.")} return data}
-        function showApp(){profilePanel.classList.remove("hidden");statusPanel.classList.remove("hidden");workspacePanel.classList.remove("hidden")}
-        function hideApp(){profilePanel.classList.add("hidden");statusPanel.classList.add("hidden");workspacePanel.classList.add("hidden")}
-        function renderProfile(){if(!state.profile){hideApp();return} showApp(); profileName.textContent=state.profile.fio; variant1Value.textContent=state.profile.variant1||"-"; variant23Value.textContent=state.profile.variant23||"-"}
-        function renderStatus(cards){statusGrid.innerHTML=""; cards.forEach(card=>{const accepted=card.accepted_at?`<span class="tag good">Принято</span>`:card.last_attempt_at?`<span class="tag bad">Есть расхождения</span>`:`<span class="tag">Еще не проверялось</span>`; const filesTag=card.upload_count>0?`<span class="tag good">Файлы: ${card.upload_count}</span>`:`<span class="tag bad">Файлы не загружены</span>`; const node=document.createElement("article"); node.className="status-card"; node.innerHTML=`<h3>Задача ${card.subtask}</h3><p class="muted">Вариант: ${card.variant||"-"}</p><div style="margin:12px 0 8px">${accepted}${filesTag}</div><p>Попыток: <strong>${card.attempt_count}</strong></p><p>Принято: <strong>${card.accepted_at||"нет"}</strong></p><p>Последняя попытка: <strong>${card.last_attempt_at||"нет"}</strong></p>`; statusGrid.appendChild(node)})}
-        function renderTaskButtons(){taskButtons.innerHTML=""; Object.keys(state.tasks).forEach(subtask=>{const button=document.createElement("button"); button.textContent=`Задача ${subtask}`; if(subtask===state.activeSubtask){button.classList.add("active")} button.addEventListener("click",()=>{state.activeSubtask=subtask; renderTaskButtons(); renderFields()}); taskButtons.appendChild(button)})}
-        function renderFields(){const task=state.tasks[state.activeSubtask]; fieldsContainer.innerHTML=""; resultBox.classList.add("hidden"); resultList.innerHTML=""; setStatus(checkStatus,"",""); if(!task){return} const fieldNames=task.fields||[]; taskHint.textContent=`Задача ${task.subtask}. Вариант ${task.variant||"-"}. Введи ${fieldNames.length} расчетных значений.`; fieldNames.forEach((fieldName,index)=>{const wrapper=document.createElement("div"); wrapper.className="field-card"; wrapper.innerHTML=`<label for="field-${index}">${fieldName}</label><input id="field-${index}" data-index="${index}" type="text" inputmode="decimal" placeholder="Введите число">`; fieldsContainer.appendChild(wrapper)})}
-        function collectValues(){return Array.from(fieldsContainer.querySelectorAll("input")).map(input=>input.value.trim())}
-        async function login(){const fio=fioInput.value.trim(); if(!fio){setStatus(loginStatus,"Введите ФИО.","bad");return} setStatus(loginStatus,"Подключение к профилю...",""); try{const data=await api("/api/login",{fio}); state.fio=data.profile.fio; state.profile=data.profile; state.tasks=data.tasks; state.activeSubtask="1.1"; localStorage.setItem("elcut-fio",state.fio); fioInput.value=state.fio; renderProfile(); renderStatus(data.status); renderTaskButtons(); renderFields(); setStatus(loginStatus,"Профиль активирован.","good"); switchPage("overview")}catch(error){hideApp(); setStatus(loginStatus,error.message,"bad")}}
-        async function refreshStatus(){if(!state.fio){return} try{const data=await api("/api/status",{fio:state.fio}); renderStatus(data.status); setStatus(loginStatus,"Статус обновлен.","good")}catch(error){setStatus(loginStatus,error.message,"bad")}}
-        async function checkTask(){if(!state.fio){setStatus(checkStatus,"Сначала войдите по ФИО.","bad");return} const values=collectValues(); if(values.some(value=>!value)){setStatus(checkStatus,"Заполните все поля.","bad");return} setStatus(checkStatus,"Идет расчет погрешностей...",""); try{const data=await api("/api/check",{fio:state.fio,subtask:state.activeSubtask,values}); renderStatus(data.status); setStatus(checkStatus,data.accepted?"Работа засчитана.":"Обнаружены расхождения.",data.accepted?"good":"bad"); const labels=state.tasks[state.activeSubtask].fields; resultList.innerHTML=""; data.errors_pct.forEach((errorValue,index)=>{const item=document.createElement("li"); item.textContent=`${labels[index]}: ${errorValue}%`; resultList.appendChild(item)}); resultBox.classList.remove("hidden")}catch(error){setStatus(checkStatus,error.message,"bad")}}
-        async function uploadFiles(){if(!state.fio){setStatus(uploadStatus,"Сначала войдите по ФИО.","bad");return} const files=Array.from(uploadInput.files||[]); if(files.length!==3){setStatus(uploadStatus,"Выберите ровно 3 файла.","bad");return} const formData=new FormData(); formData.append("fio",state.fio); formData.append("subtask",uploadTaskSelect.value); files.forEach(file=>formData.append("files",file,file.name)); setStatus(uploadStatus,"Передача комплекта на сервер...",""); try{const data=await api("/api/upload",formData,true); renderStatus(data.status); setStatus(uploadStatus,`Файлы сохранены: ${data.saved_files.join(", ")}`,"good"); uploadInput.value=""}catch(error){setStatus(uploadStatus,error.message,"bad")}}
-        function logout(){state.fio=""; state.profile=null; state.tasks={}; localStorage.removeItem("elcut-fio"); fioInput.value=""; hideApp(); statusGrid.innerHTML=""; fieldsContainer.innerHTML=""; taskButtons.innerHTML=""; resultList.innerHTML=""; resultBox.classList.add("hidden"); setStatus(loginStatus,"Профиль очищен.",""); setStatus(checkStatus,"",""); setStatus(uploadStatus,"",""); switchPage("overview")}
+        function switchPage(name){pages.forEach(p=>p.classList.toggle("active",p.id===`page-${name}`));navButtons.forEach(b=>b.classList.toggle("active",b.dataset.page===name))}
+        async function api(path,payload,isFormData=false){const options={method:"POST",headers:{},body:null};if(isFormData){options.body=payload}else{options.headers["Content-Type"]="application/json";options.body=JSON.stringify(payload)}let response;try{response=await fetch(`${API_BASE}${path}`,options)}catch(error){throw new Error("Не удалось подключиться к локальному серверу. Запусти python app.py.")}const raw=await response.text();let data;try{data=raw?JSON.parse(raw):{}}catch(error){throw new Error("Сервер вернул не JSON. Открой страницу через python app.py.")}if(!response.ok||!data.ok){throw new Error(data.error||"Ошибка запроса.")}return data}
+        async function loadTheory(){if(!theoryList){return}try{const response=await fetch(`${API_BASE}/api/theory`);const data=await response.json();const files=[...(data.files||[]),{name:"Методические указания.docx",size:null,url:"https://docs.google.com/document/d/1m19kli8S-w4qUXturziQre1u6yElS6U-/export?format=docx",external:true,preview_url:null}];theoryList.innerHTML="";files.forEach(file=>{const card=document.createElement("article");card.className="status-card";const sizeText=file.size?`Размер: ${(file.size/1024/1024).toFixed(1)} МБ`:"Файл Word";const fileUrl=file.external?file.url:`${API_BASE}${file.url}`;const previewUrl=file.preview_url?`${API_BASE}${file.preview_url}`:null;const isVideo=/\.mkv$/i.test(file.name);const previewBlock=previewUrl?`<div class="theory-media"><iframe src="${previewUrl}" title="${file.name}"></iframe></div>`:"";const previewButton=previewUrl?`<a href="${previewUrl}" target="_blank" rel="noopener noreferrer"><button type="button" class="secondary">Предпросмотр</button></a>`:"";card.innerHTML=`<h3>${file.name}</h3><p class="muted">${sizeText}</p>${isVideo?`<div class="theory-media"><video controls preload="metadata" src="${fileUrl}"></video></div><p class="muted" style="margin-top:10px">Если видео не воспроизводится, используй скачивание: поддержка MKV зависит от браузера.</p>`:previewBlock}<div class="row" style="margin-top:12px">${previewButton}<a href="${fileUrl}" target="_blank" rel="noopener noreferrer"><button type="button">${isVideo?"Открыть / скачать":"Скачать"}</button></a></div>`;theoryList.appendChild(card)});if(!files.length){theoryList.innerHTML='<div class="side-box"><p class="muted">В папке Теория пока нет файлов.</p></div>'}}catch(error){theoryList.innerHTML='<div class="side-box"><p class="muted">Не удалось загрузить список теории.</p></div>'}}
+        function showApp(){statusPanel.classList.remove("hidden");workspacePanel.classList.remove("hidden")}
+        function hideApp(){statusPanel.classList.add("hidden");workspacePanel.classList.add("hidden")}
+        function renderProfile(){if(!state.profile){hideApp();state.isTeacher=false;totalsNavButton.classList.add("hidden");profileNameTop.textContent="Гость";return}showApp();state.isTeacher=!!state.profile.is_teacher;totalsNavButton.classList.toggle("hidden",!state.isTeacher);profileNameTop.textContent=state.profile.fio}
+        function renderStatus(cards){statusGrid.innerHTML="";cards.forEach(card=>{const accepted=card.accepted_at?`<span class="tag good">Принято</span>`:card.last_attempt_at?`<span class="tag bad">Есть расхождения</span>`:`<span class="tag">Еще не проверялось</span>`;const filesTag=card.upload_count>0?`<span class="tag good">Файлы: ${card.upload_count}</span>`:`<span class="tag bad">Файлы не загружены</span>`;const node=document.createElement("article");node.className="status-card";node.innerHTML=`<h3>Задача ${card.subtask}</h3><p class="muted">Вариант: ${card.variant||"-"}</p><div style="margin:10px 0 6px">${accepted}${filesTag}</div><p>Попыток: <strong>${card.attempt_count}</strong></p><p>Принято: <strong>${card.accepted_at||"нет"}</strong></p><p>Последняя попытка: <strong>${card.last_attempt_at||"нет"}</strong></p>`;statusGrid.appendChild(node)})}
+        function renderTotalsTable(rows){if(!rows.length){totalsContent.innerHTML='<p class="muted">Ничего не найдено.</p>';return}let html='<div class="row" style="margin-bottom:12px"><input id="totalsFilterInput" type="text" placeholder="Фильтр по имени" style="max-width:320px"></div><table class="totals-table"><thead><tr><th>Студент</th><th>Группа</th><th>Варианты</th><th>Статусы</th><th>Материалы</th></tr></thead><tbody>';rows.forEach(row=>{const statuses=row.tasks.map(task=>`<div class="totals-task"><strong>${task.subtask}</strong> <span class="tag ${task.accepted?"good":"bad"}">${task.accepted?"Принята":"Не принята"}</span><div class="muted">Попыток: ${task.attempt_count}</div><div class="muted">Последняя: ${task.last_attempt_at||"нет"}</div></div>`).join("");const materialsCell=row.has_materials?`<a href="${API_BASE}${row.download_url}" target="_blank" rel="noopener noreferrer"><button type="button">Скачать</button></a>`:`<span class="muted">Нет материалов</span>`;html+=`<tr><td>${row.fio}</td><td>${row.group||"-"}</td><td>1: ${row.variant1||"-"}<br>2-3: ${row.variant23||"-"}</td><td>${statuses}</td><td>${materialsCell}</td></tr>`});html+='</tbody></table>';totalsContent.innerHTML=html;const filterInput=document.getElementById("totalsFilterInput");if(filterInput){filterInput.addEventListener("input",event=>{const query=event.target.value.trim().toLowerCase();const filtered=state.totalsRows.filter(row=>row.fio.toLowerCase().includes(query));renderTotalsTable(filtered);const nextInput=document.getElementById("totalsFilterInput");if(nextInput){nextInput.value=query;nextInput.focus();nextInput.setSelectionRange(query.length,query.length)}})}}
+        async function loadTotals(){if(!state.isTeacher){totalsContent.innerHTML='<p class="muted">Войди как преподаватель, чтобы увидеть таблицу.</p>';return}try{const data=await api("/api/teacher/summary",{fio:state.fio});state.totalsRows=data.rows||[];if(!state.totalsRows.length){totalsContent.innerHTML='<p class="muted">Пока нет данных по студентам.</p>';return}renderTotalsTable(state.totalsRows)}catch(error){totalsContent.innerHTML=`<p class="muted">${error.message}</p>`}}
+        function renderTaskButtons(){taskButtons.innerHTML="";["1.1","1.2","1.3","2","3"].filter(subtask=>state.tasks[subtask]).forEach(subtask=>{const button=document.createElement("button");button.textContent=`Задача ${subtask}`;if(subtask===state.activeSubtask){button.classList.add("active")}button.addEventListener("click",()=>{state.activeSubtask=subtask;renderTaskButtons();renderFields()});taskButtons.appendChild(button)})}
+        function renderFields(){const task=state.tasks[state.activeSubtask];fieldsContainer.innerHTML="";resultBox.classList.add("hidden");resultList.innerHTML="";setStatus(checkStatus,"","");if(!task){taskHint.textContent="Выберите задачу.";taskVariantBadge.classList.add("hidden");checkHintText.textContent="Используй точку или запятую. Порядок полей соответствует варианту из базы.";return}let fieldNames=task.fields||[];if(task.subtask==="1.1"&&fieldNames.length===5){fieldNames=[fieldNames[2],fieldNames[3],fieldNames[4],fieldNames[0],fieldNames[1]]}taskHint.textContent=`Задача ${task.subtask}.`;taskVariantBadge.textContent=`Вариант ${task.variant||"-"}`;taskVariantBadge.classList.remove("hidden");if(task.subtask==="2"||task.subtask==="3"){checkHintText.textContent="Скопируй матрицу 6×6 из Excel и вставь ее в одно поле через Ctrl+V.";const wrapper=document.createElement("div");wrapper.className="matrix-box";wrapper.style.gridColumn="1 / -1";wrapper.innerHTML=`<label for="matrixInput">Матрица 6×6 из Excel</label><textarea id="matrixInput" placeholder="Вставь сюда матрицу целиком из Excel"></textarea><p class="muted">Вставляй таблицу из 6 строк и 6 столбцов через Ctrl+V.</p>`;fieldsContainer.appendChild(wrapper);return}checkHintText.textContent="Используй точку или запятую. Порядок полей соответствует варианту из базы.";fieldNames.forEach((name,index)=>{const wrapper=document.createElement("div");wrapper.className="field-card";if((task.subtask==="1.1"&&index===3)||(task.subtask==="1.2"&&index===3)){wrapper.classList.add("row-break")}wrapper.innerHTML=`<label for="field-${index}">${name}</label><input id="field-${index}" data-index="${index}" type="text" inputmode="decimal" placeholder="Введите число">`;fieldsContainer.appendChild(wrapper)})}
+        function parseMatrixValues(text){const rows=text.trim().split(/\r?\n/).map(row=>row.trim()).filter(Boolean).map(row=>row.split(/\t|;| +/).map(cell=>cell.trim()).filter(Boolean));if(rows.length!==6||rows.some(row=>row.length!==6)){return null}const values=[];for(let i=0;i<6;i++){for(let j=0;j<=i;j++){values.push(rows[i][j])}}return values}
+        function collectValues(){if(state.activeSubtask==="2"||state.activeSubtask==="3"){const matrixInput=document.getElementById("matrixInput");if(!matrixInput){return []}return parseMatrixValues(matrixInput.value)||[]}let values=Array.from(fieldsContainer.querySelectorAll("input")).map(input=>input.value.trim());if(state.activeSubtask==="1.1"&&values.length===5){values=[values[3],values[4],values[0],values[1],values[2]]}return values}
+        async function login(){const fio=fioInput.value.trim();if(!fio){setStatus(loginStatus,"Введите ФИО.","bad");return}setStatus(loginStatus,"Подключение к профилю...","");try{const data=await api("/api/login",{fio});state.fio=data.profile.fio;state.profile=data.profile;state.tasks=data.tasks;state.activeSubtask="1.1";localStorage.setItem("elcut-fio",state.fio);fioInput.value=state.fio;renderProfile();renderStatus(data.status);renderTaskButtons();renderFields();if(state.isTeacher){loadTotals()}setStatus(loginStatus,"Профиль активирован.","good");switchPage("overview")}catch(error){hideApp();setStatus(loginStatus,error.message,"bad")}}
+        async function checkTask(){if(!state.fio){setStatus(checkStatus,"Сначала войдите по ФИО.","bad");return}const values=collectValues();if(state.activeSubtask==="2"||state.activeSubtask==="3"){if(values.length!==21||values.some(v=>!v)){setStatus(checkStatus,"Вставь корректную матрицу 6×6 из Excel.","bad");return}}else if(values.some(v=>!v)){setStatus(checkStatus,"Заполните все поля.","bad");return}setStatus(checkStatus,"Идет проверка...","");try{const data=await api("/api/check",{fio:state.fio,subtask:state.activeSubtask,values});renderStatus(data.status);setStatus(checkStatus,data.accepted?"Работа засчитана.":"Обнаружены расхождения.",data.accepted?"good":"bad");resultList.innerHTML="";resultBox.classList.add("hidden")}catch(error){setStatus(checkStatus,error.message,"bad")}}
+        async function uploadFiles(){if(!state.fio){setStatus(uploadStatus,"Сначала войдите по ФИО.","bad");return}const files=Array.from(uploadInput.files||[]);if(files.length!==3){setStatus(uploadStatus,"Выберите ровно 3 файла.","bad");return}const formData=new FormData();formData.append("fio",state.fio);formData.append("subtask",uploadTaskSelect.value);files.forEach(file=>formData.append("files",file,file.name));setStatus(uploadStatus,"Передача комплекта на сервер...","");try{const data=await api("/api/upload",formData,true);renderStatus(data.status);setStatus(uploadStatus,`Файлы сохранены: ${data.saved_files.join(", ")}`,"good");uploadInput.value=""}catch(error){setStatus(uploadStatus,error.message,"bad")}}
+        function logout(){state.fio="";state.profile=null;state.tasks={};state.isTeacher=false;state.totalsRows=[];localStorage.removeItem("elcut-fio");fioInput.value="";hideApp();statusGrid.innerHTML="";fieldsContainer.innerHTML="";taskButtons.innerHTML="";resultList.innerHTML="";resultBox.classList.add("hidden");totalsContent.innerHTML='<p class="muted">Войди как преподаватель, чтобы увидеть таблицу.</p>';setStatus(loginStatus,"Профиль очищен.","");setStatus(checkStatus,"","");setStatus(uploadStatus,"","");renderProfile();switchPage("overview")}
         navButtons.forEach(button=>button.addEventListener("click",()=>switchPage(button.dataset.page)));
-        loginButton.addEventListener("click",login); logoutButton.addEventListener("click",logout); refreshStatusButton.addEventListener("click",refreshStatus); checkButton.addEventListener("click",checkTask); clearButton.addEventListener("click",()=>{fieldsContainer.querySelectorAll("input").forEach(input=>input.value=""); setStatus(checkStatus,"Поля очищены.","")}); uploadButton.addEventListener("click",uploadFiles); fioInput.addEventListener("keydown",event=>{if(event.key==="Enter"){login()}});
-        if(state.fio){login()}
+        loginButton.addEventListener("click",login);logoutButton.addEventListener("click",logout);checkButton.addEventListener("click",checkTask);clearButton.addEventListener("click",()=>{fieldsContainer.querySelectorAll("input").forEach(input=>input.value="");setStatus(checkStatus,"Поля очищены.","")});uploadButton.addEventListener("click",uploadFiles);fioInput.addEventListener("keydown",event=>{if(event.key==="Enter"){login()}});
+        renderProfile();loadTheory();if(state.fio){login()}
     </script>
 </body>
 </html>

@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import sqlite3
+import zipfile
 from email.parser import BytesParser
 from email.policy import default
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote, unquote
 from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,6 +30,7 @@ import logic  # type: ignore
 
 
 MATERIALS_DIR = str(BOT_DIR / "Материалы")
+THEORY_DIR = BASE_DIR.parent / "Теория"
 
 SUBTASKS = ["1.1", "1.2", "1.3", "2", "3"]
 ALLOWED_EXTS = [".pbm", ".mod", ".des"]
@@ -120,7 +124,21 @@ def get_student_profile(fio: str) -> dict[str, Any] | None:
         "fio": str(prof.get("fio") or "").strip(),
         "variant1": str(prof.get("variant1") or "").strip(),
         "variant23": str(prof.get("variant23") or "").strip(),
+        "is_teacher": False,
     }
+
+
+def get_teacher_profile(fio: str) -> dict[str, Any] | None:
+    raw = (fio or "").strip()
+    normalized = normalize_fio_input(raw)
+    if raw.lower() == "преподаватель" or normalized == "Преподаватель":
+        return {
+            "fio": "Преподаватель",
+            "variant1": "0",
+            "variant23": "0",
+            "is_teacher": True,
+        }
+    return None
 
 
 def pseudo_user_id(fio: str) -> int:
@@ -129,6 +147,8 @@ def pseudo_user_id(fio: str) -> int:
 
 
 def subtask_variant(profile: dict[str, Any], subtask: str) -> str:
+    if profile.get("is_teacher"):
+        return "0"
     if subtask in ("1.1", "1.2", "1.3"):
         return str(profile.get("variant1") or "").strip()
     return str(profile.get("variant23") or "").strip()
@@ -169,6 +189,71 @@ def build_task_payload(profile: dict[str, Any], subtask: str) -> dict[str, Any]:
         "fields": fields,
         "tolerance_pct": list(REL_TOL[subtask]),
     }
+
+
+def get_any_profile(fio: str) -> dict[str, Any] | None:
+    return get_teacher_profile(fio) or get_student_profile(fio)
+
+
+def get_students_report_rows() -> list[dict[str, Any]]:
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cols = db.get_students_columns(DB_PATH)
+    mapping = db._students_col_map(cols)  # type: ignore[attr-defined]
+    fio_col = mapping.get("fio") or ""
+    v1_col = mapping.get("variant1") or ""
+    v23_col = mapping.get("variant23") or ""
+    group_col = "№ гр." if "№ гр." in cols else ("Группа" if "Группа" in cols else "")
+    if not fio_col:
+        conn.close()
+        return []
+    cur.execute('SELECT * FROM "Студенты" ORDER BY ' + db.qname(fio_col))
+    rows: list[dict[str, Any]] = []
+    for row in cur.fetchall():
+        fio = str(row[fio_col] or "").strip()
+        variant1 = str(row[v1_col] or "").strip() if v1_col else ""
+        variant23 = str(row[v23_col] or "").strip() if v23_col else ""
+        tasks: list[dict[str, Any]] = []
+        for subtask in SUBTASKS:
+            variant = variant1 if subtask in ("1.1", "1.2", "1.3") else variant23
+            summary = db.get_attempt_summary(DB_PATH, variant, subtask) if variant else {"count": 0, "first_ok": "", "last_time": "", "last_success": 0}
+            uploads = db.count_upload_batches(DB_PATH, variant, subtask) if variant else 0
+            tasks.append({
+                "subtask": subtask,
+                "variant": variant,
+                "accepted_at": str(summary.get("first_ok") or ""),
+                "attempt_count": int(summary.get("count") or 0),
+                "upload_count": int(uploads),
+                "last_attempt_at": str(summary.get("last_time") or ""),
+                "accepted": bool(summary.get("first_ok")),
+            })
+        has_materials = (Path(MATERIALS_DIR) / sanitize_path_part(fio)).exists()
+        rows.append({
+            "fio": fio,
+            "group": str(row[group_col] or "").strip() if group_col else "",
+            "variant1": variant1,
+            "variant23": variant23,
+            "tasks": tasks,
+            "has_materials": has_materials,
+            "download_url": f"/teacher/materials/{quote(fio)}",
+        })
+    conn.close()
+    return rows
+
+
+def build_student_materials_zip(student_fio: str) -> tuple[bytes, str]:
+    folder = Path(MATERIALS_DIR) / sanitize_path_part(student_fio)
+    if not folder.exists() or not folder.is_dir():
+        raise ValueError("Материалы студента не найдены.")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for root, _, files in os.walk(folder):
+            for filename in files:
+                full = Path(root) / filename
+                archive.write(full, arcname=str(full.relative_to(folder.parent)))
+    archive_name = sanitize_path_part(student_fio) + ".zip"
+    return buffer.getvalue(), archive_name
 
 
 def replicate_variant_files(variant: str, subtask: str, src_dir: str, filenames: list[str], uploader_fio: str) -> None:
@@ -238,6 +323,18 @@ def parse_multipart(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     return fields
 
 
+def theory_content_type(path: Path) -> str:
+    if path.suffix == ".mkv":
+        return "video/x-matroska"
+    if path.suffix == ".xlsx":
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    if path.suffix == ".docx":
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    if path.suffix == ".pdf":
+        return "application/pdf"
+    return "application/octet-stream"
+
+
 class AppHandler(BaseHTTPRequestHandler):
     server_version = "ElcutWeb/1.0"
 
@@ -286,16 +383,30 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
-        if parsed.path in ("/", "/index.html"):
-            self.send_file(BASE_DIR / "index.html")
-            return
-        if parsed.path == "/Front-VS-Behind-meter.png":
-            self.send_file(BASE_DIR.parent / "Front-VS-Behind-meter.png")
-            return
-        if parsed.path == "/api/ping":
-            self.send_json({"ok": True})
-            return
-        self.send_json({"ok": False, "error": "Страница не найдена."}, status=HTTPStatus.NOT_FOUND)
+        try:
+            if parsed.path in ("/", "/index.html"):
+                self.send_file(BASE_DIR / "index.html")
+                return
+            if parsed.path == "/Front-VS-Behind-meter.png":
+                self.send_file(BASE_DIR.parent / "Front-VS-Behind-meter.png")
+                return
+            if parsed.path == "/api/theory":
+                self.handle_theory_list()
+                return
+            if parsed.path.startswith("/theory/"):
+                self.handle_theory_file(parsed.path)
+                return
+            if parsed.path.startswith("/teacher/materials/"):
+                self.handle_teacher_materials(parsed.path)
+                return
+            if parsed.path == "/api/ping":
+                self.send_json({"ok": True})
+                return
+            self.send_json({"ok": False, "error": "Страница не найдена."}, status=HTTPStatus.NOT_FOUND)
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            self.send_json({"ok": False, "error": f"Внутренняя ошибка: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
@@ -312,16 +423,90 @@ class AppHandler(BaseHTTPRequestHandler):
             if parsed.path == "/api/upload":
                 self.handle_upload()
                 return
+            if parsed.path == "/api/teacher/summary":
+                self.handle_teacher_summary()
+                return
             self.send_json({"ok": False, "error": "Маршрут не найден."}, status=HTTPStatus.NOT_FOUND)
         except ValueError as exc:
             self.send_json({"ok": False, "error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
         except Exception as exc:
             self.send_json({"ok": False, "error": f"Внутренняя ошибка: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+    def handle_theory_list(self) -> None:
+        items: list[dict[str, Any]] = []
+        if THEORY_DIR.exists():
+            for path in sorted(THEORY_DIR.iterdir(), key=lambda item: item.name.lower()):
+                if not path.is_file():
+                    continue
+                preview_url = None
+                if path.suffix in (".xlsx", ".docx"):
+                    pdf_candidate = path.with_suffix(".pdf")
+                    if pdf_candidate.exists():
+                        preview_url = f"/theory/{pdf_candidate.name}"
+                elif path.suffix == ".pdf":
+                    preview_url = f"/theory/{path.name}"
+                items.append({
+                    "name": path.name,
+                    "size": path.stat().st_size,
+                    "url": f"/theory/{path.name}",
+                    "preview_url": preview_url,
+                })
+        self.send_json({"ok": True, "files": items})
+
+    def handle_theory_file(self, raw_path: str) -> None:
+        filename = unquote(raw_path.removeprefix("/theory/"))
+        safe_name = os.path.basename(filename)
+        path = THEORY_DIR / safe_name
+        if not path.exists() or not path.is_file():
+            self.send_json({"ok": False, "error": "Файл теории не найден."}, status=HTTPStatus.NOT_FOUND)
+            return
+        content_type = theory_content_type(path)
+        total_size = path.stat().st_size
+        range_header = self.headers.get("Range", "").strip()
+        if range_header.startswith("bytes="):
+            start_s, _, end_s = range_header[6:].partition("-")
+            try:
+                start = int(start_s) if start_s else 0
+                end = int(end_s) if end_s else total_size - 1
+            except ValueError:
+                start = 0
+                end = total_size - 1
+            start = max(0, min(start, total_size - 1))
+            end = max(start, min(end, total_size - 1))
+            chunk_size = end - start + 1
+            self.send_response(HTTPStatus.PARTIAL_CONTENT)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Range", f"bytes {start}-{end}/{total_size}")
+            self.send_header("Content-Length", str(chunk_size))
+            self.end_headers()
+            with open(path, "rb") as stream:
+                stream.seek(start)
+                self.wfile.write(stream.read(chunk_size))
+            return
+
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Accept-Ranges", "bytes")
+        disposition = "inline" if path.suffix in (".mkv", ".pdf") else "attachment"
+        self.send_header("Content-Disposition", f'{disposition}; filename="{path.name}"')
+        self.send_header("Content-Length", str(total_size))
+        self.end_headers()
+        with open(path, "rb") as stream:
+            shutil.copyfileobj(stream, self.wfile)
+
     def require_profile(self, fio: str) -> dict[str, Any]:
-        profile = get_student_profile(fio)
+        profile = get_any_profile(fio)
         if not profile:
             raise ValueError("Пользователь с таким ФИО не найден.")
+        return profile
+
+    def require_teacher(self, fio: str) -> dict[str, Any]:
+        profile = get_teacher_profile(fio)
+        if not profile:
+            raise ValueError("Режим итогов доступен только преподавателю.")
         return profile
 
     def handle_login(self) -> None:
@@ -339,6 +524,11 @@ class AppHandler(BaseHTTPRequestHandler):
         data = parse_json_body(self)
         profile = self.require_profile(str(data.get("fio") or ""))
         self.send_json({"ok": True, "status": format_status(profile)})
+
+    def handle_teacher_summary(self) -> None:
+        data = parse_json_body(self)
+        self.require_teacher(str(data.get("fio") or ""))
+        self.send_json({"ok": True, "rows": get_students_report_rows()})
 
     def handle_check(self) -> None:
         data = parse_json_body(self)
@@ -455,6 +645,17 @@ class AppHandler(BaseHTTPRequestHandler):
             "saved_files": saved_names,
             "status": format_status(profile),
         })
+
+    def handle_teacher_materials(self, raw_path: str) -> None:
+        fio = unquote(raw_path.removeprefix("/teacher/materials/"))
+        body, archive_name = build_student_materials_zip(fio)
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Content-Disposition", f'attachment; filename="{archive_name}"')
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
 
 def run() -> None:
